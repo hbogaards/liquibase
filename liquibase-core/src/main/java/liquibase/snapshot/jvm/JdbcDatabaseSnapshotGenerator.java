@@ -63,7 +63,7 @@ public abstract class JdbcDatabaseSnapshotGenerator implements DatabaseSnapshotG
             throw new UnexpectedLiquibaseException(e);
         }
     }
-    
+
     public boolean hasView(String schemaName, String viewName, Database database) {
         try {
             ResultSet rs = getMetaData(database).getTables(database.convertRequestedSchemaToCatalog(schemaName), database.convertRequestedSchemaToSchema(schemaName), convertTableNameToDatabaseTableName(viewName), new String[]{"VIEW"});
@@ -209,7 +209,7 @@ public abstract class JdbcDatabaseSnapshotGenerator implements DatabaseSnapshotG
 	 * Configuration of column's type.
 	 * @param column Column to configure
 	 * @param rs Result set, used as a property resource.
-	 * @throws java.sql.SQLException wrong Result Set content 
+	 * @throws java.sql.SQLException wrong Result Set content
 	 * */
 	protected void configureColumnType(Column column, ResultSet rs) throws SQLException {
 		column.setDataType(rs.getInt("DATA_TYPE"));
@@ -479,7 +479,9 @@ public abstract class JdbcDatabaseSnapshotGenerator implements DatabaseSnapshotG
 			foreignKey = new ForeignKey();
 		} else {
 			for (ForeignKey foundFK : fkList) {
-				if (foundFK.getName().equalsIgnoreCase(fkInfo.getFkName())) {
+				if (foundFK != null &&
+				    foundFK.getName() != null &&
+				    foundFK.getName().equalsIgnoreCase(fkInfo.getFkName())) {
 					foreignKey = foundFK;
 				}
 			}
@@ -562,7 +564,7 @@ public abstract class JdbcDatabaseSnapshotGenerator implements DatabaseSnapshotG
     /**
      * Fill foreign key information from the current register of a getImportedKeys resultset
      * @param rs The resultset returned by getImportedKeys
-     * @return Foreign key information 
+     * @return Foreign key information
      */
     protected ForeignKeyInfo fillForeignKeyInfo(ResultSet rs) throws DatabaseException, SQLException {
         ForeignKeyInfo fkInfo = new ForeignKeyInfo();
@@ -586,9 +588,9 @@ public abstract class JdbcDatabaseSnapshotGenerator implements DatabaseSnapshotG
         fkInfo.setDeleteRule(deleteRule);
         fkInfo.setDeferrablility(rs.getShort("DEFERRABILITY"));
         return fkInfo;
-    }        
+    }
 
-  
+
     protected ForeignKeyConstraintType convertToForeignKeyConstraintType(int jdbcType) throws DatabaseException {
         if (jdbcType == DatabaseMetaData.importedKeyCascade) {
             return ForeignKeyConstraintType.importedKeyCascade;

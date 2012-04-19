@@ -32,7 +32,7 @@ public class AddPrimaryKeyGenerator extends AbstractSqlGenerator<AddPrimaryKeySt
         }
 
         if (StringUtils.trimToNull(statement.getTablespace()) != null && database.supportsTablespaces()) {
-            if (database instanceof MSSQLDatabase) {
+            if (database instanceof MSSQLDatabase || database instanceof SybaseDatabase) {
                 sql += " ON "+statement.getTablespace();
             } else if (database instanceof DB2Database || database instanceof SybaseASADatabase) {
                 ; //not supported

@@ -6,6 +6,7 @@ import liquibase.change.ChangeMetaData;
 import liquibase.database.Database;
 import liquibase.database.core.MSSQLDatabase;
 import liquibase.database.core.SQLiteDatabase;
+import liquibase.database.core.SybaseDatabase;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.CreateViewStatement;
 import liquibase.statement.core.DropViewStatement;
@@ -100,7 +101,8 @@ public class CreateViewChange extends AbstractChange {
 	}
 
 	private boolean supportsReplaceIfExistsOption(Database database) {
-		return !(database instanceof SQLiteDatabase);
+		return !(database instanceof SQLiteDatabase
+		    || database instanceof MSSQLDatabase || database instanceof SybaseDatabase);
 	}
 
 }
