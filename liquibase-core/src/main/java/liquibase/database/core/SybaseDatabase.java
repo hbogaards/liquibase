@@ -61,7 +61,7 @@ public class SybaseDatabase extends AbstractDatabase {
     public int getPriority() {
         return PRIORITY_DEFAULT;
     }
-    
+
     /**
      * Sybase does not support DDL and meta data in transactions properly,
      * as such we turn off the commit and turn on auto commit.
@@ -112,7 +112,7 @@ public class SybaseDatabase extends AbstractDatabase {
         if (currentDateTimeFunction != null) {
             return currentDateTimeFunction;
         }
-        
+
         return "GETDATE()";
     }
 
@@ -126,13 +126,13 @@ public class SybaseDatabase extends AbstractDatabase {
 		// not supported
 		return false;
 	}
-	
+
 	@Override
 	protected boolean generateAutoIncrementBy(BigInteger incrementBy) {
 		// not supported
 		return false;
-	}    
-    
+	}
+
     @Override
     protected String getDefaultDatabaseSchemaName() throws DatabaseException {
         return null;
@@ -253,8 +253,8 @@ public class SybaseDatabase extends AbstractDatabase {
         }
         return definition.toString();
 	}
-	
-	/** 
+
+	/**
 	 * @return the major version if supported, otherwise -1
 	 * @see liquibase.database.AbstractDatabase#getDatabaseMajorVersion()
 	 */
@@ -279,7 +279,7 @@ public class SybaseDatabase extends AbstractDatabase {
             return getConnection().getDatabaseMinorVersion();
         } catch (UnsupportedOperationException e) {
         	LogFactory.getLogger()
-    			.warning("Your JDBC driver does not support getDatabaseMajorVersion(). Consider upgrading it.");
+    			.warning("Your JDBC driver does not support getDatabaseMinorVersion(). Consider upgrading it.");
             return -1;
         }
     }

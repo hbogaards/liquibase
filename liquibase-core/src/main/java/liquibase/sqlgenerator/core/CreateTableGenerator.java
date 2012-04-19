@@ -28,21 +28,21 @@ public class CreateTableGenerator extends AbstractSqlGenerator<CreateTableStatem
             StringBuffer buffer = new StringBuffer();
         buffer.append("CREATE TABLE ").append(database.escapeTableName(statement.getSchemaName(), statement.getTableName())).append(" ");
         buffer.append("(");
-        
+
         boolean isSinglePrimaryKeyColumn = statement.getPrimaryKeyConstraint() != null
             && statement.getPrimaryKeyConstraint().getColumns().size() == 1;
-        
+
         boolean isPrimaryKeyAutoIncrement = false;
-        
+
         Iterator<String> columnIterator = statement.getColumns().iterator();
         while (columnIterator.hasNext()) {
             String column = columnIterator.next();
-            
+
             buffer.append(database.escapeColumnName(statement.getSchemaName(), statement.getTableName(), column));
             buffer.append(" ").append(statement.getColumnTypes().get(column));
-            
+
             AutoIncrementConstraint autoIncrementConstraint = null;
-            
+
             for (AutoIncrementConstraint currentAutoIncrementConstraint : statement.getAutoIncrementConstraints()) {
             	if (column.equals(currentAutoIncrementConstraint.getColumnName())) {
             		autoIncrementConstraint = currentAutoIncrementConstraint;
@@ -50,12 +50,12 @@ public class CreateTableGenerator extends AbstractSqlGenerator<CreateTableStatem
             	}
             }
 
-            boolean isAutoIncrementColumn = autoIncrementConstraint != null;            
+            boolean isAutoIncrementColumn = autoIncrementConstraint != null;
             boolean isPrimaryKeyColumn = statement.getPrimaryKeyConstraint() != null
             		&& statement.getPrimaryKeyConstraint().getColumns().contains(column);
             isPrimaryKeyAutoIncrement = isPrimaryKeyAutoIncrement
             		|| isPrimaryKeyColumn && isAutoIncrementColumn;
-            
+
             if ((database instanceof SQLiteDatabase) &&
 					isSinglePrimaryKeyColumn &&
 					isPrimaryKeyColumn &&
@@ -84,7 +84,7 @@ public class CreateTableGenerator extends AbstractSqlGenerator<CreateTableStatem
             	// TODO: check if database supports auto increment on non primary key column
                 if (database.supportsAutoIncrement()) {
                 	String autoIncrementClause = database.getAutoIncrementClause(autoIncrementConstraint.getStartWith(), autoIncrementConstraint.getIncrementBy());
-                
+
                 	if (!"".equals(autoIncrementClause)) {
                 		buffer.append(" ").append(autoIncrementClause);
                 	}
@@ -221,7 +221,8 @@ public class CreateTableGenerator extends AbstractSqlGenerator<CreateTableStatem
 //        }
 
         if (statement.getTablespace() != null && database.supportsTablespaces()) {
-            if (database instanceof MSSQLDatabase || database instanceof SybaseASADatabase) {
+            if (database instanceof MSSQLDatabase || database instanceof SybaseASADatabase ||
+                database instanceof SybaseDatabase) {
                 sql += " ON " + statement.getTablespace();
             } else if (database instanceof DB2Database || database instanceof InformixDatabase) {
                 sql += " IN " + statement.getTablespace();
