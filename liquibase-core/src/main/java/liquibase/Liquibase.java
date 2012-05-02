@@ -443,6 +443,10 @@ public class Liquibase {
     }
 
     public void futureRollbackSQL(String contexts, Writer output) throws LiquibaseException {
+        futureRollbackSQL(null, contexts, output);
+    }
+
+    public void futureRollbackSQL(Integer count, String contexts, Writer output) throws LiquibaseException {
         contexts = StringUtils.trimToNull(contexts);
         changeLogParameters.setContexts(StringUtils.splitAndTrim(contexts, ","));
 
@@ -460,10 +464,31 @@ public class Liquibase {
             checkDatabaseChangeLogTable(false, changeLog, contexts);
             changeLog.validate(database, contexts);
 
-            ChangeLogIterator logIterator = new ChangeLogIterator(changeLog,
-                    new NotRanChangeSetFilter(database.getRanChangeSetList()),
-                    new ContextChangeSetFilter(contexts),
-                    new DbmsChangeSetFilter(database));
+            ChangeLogIterator logIterator;
+            if (count == null) {
+                logIterator = new ChangeLogIterator(changeLog,
+                        new NotRanChangeSetFilter(database.getRanChangeSetList()),
+                        new ContextChangeSetFilter(contexts),
+                        new DbmsChangeSetFilter(database));
+            } else {
+                ChangeLogIterator forwardIterator = new ChangeLogIterator(changeLog,
+                        new NotRanChangeSetFilter(database.getRanChangeSetList()),
+                        new ContextChangeSetFilter(contexts),
+                        new DbmsChangeSetFilter(database),
+                        new CountChangeSetFilter(count));
+                final ListVisitor listVisitor = new ListVisitor();
+                forwardIterator.run(listVisitor, database);
+
+                logIterator = new ChangeLogIterator(changeLog,
+                        new NotRanChangeSetFilter(database.getRanChangeSetList()),
+                        new ContextChangeSetFilter(contexts),
+                        new DbmsChangeSetFilter(database),
+                        new ChangeSetFilter() {
+                            public boolean accepts(ChangeSet changeSet) {
+                                return listVisitor.getSeenChangeSets().contains(changeSet);
+                            }
+                        });
+            }
 
             logIterator.run(new RollbackVisitor(database), database);
         } finally {
