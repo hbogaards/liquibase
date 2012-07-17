@@ -33,7 +33,7 @@ public class RenameColumnGenerator extends AbstractSqlGenerator<RenameColumnStat
 
     public Sql[] generateSql(RenameColumnStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         String sql;
-        if (database instanceof MSSQLDatabase) {
+        if (database instanceof MSSQLDatabase || database instanceof SybaseDatabase) {
         	// do no escape the new column name. Otherwise it produce "exec sp_rename '[dbo].[person].[usernae]', '[username]'"
             sql = "exec sp_rename '" + database.escapeTableName(statement.getSchemaName(), statement.getTableName()) + "." + database.escapeColumnName(statement.getSchemaName(), statement.getTableName(), statement.getOldColumnName()) + "', '" + statement.getNewColumnName() + "'";
         } else if (database instanceof MySQLDatabase) {
