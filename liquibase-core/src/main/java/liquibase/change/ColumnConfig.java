@@ -66,8 +66,8 @@ public class ColumnConfig {
 			constraints.setPrimaryKey(column.getConstraints().isPrimaryKey());
 			constraints.setPrimaryKeyTablespace(column.getConstraints().getPrimaryKeyTablespace());
 			constraints.setUnique(column.getConstraints().isUnique());
+	        setConstraints(constraints);
 		}
-		setConstraints(constraints);
     }
     
     public ColumnConfig() {
@@ -117,25 +117,48 @@ public class ColumnConfig {
 
 
     public ColumnConfig setValueNumeric(String valueNumeric) {
-        if (valueNumeric == null || valueNumeric.equalsIgnoreCase("null")) {
-            this.valueNumeric = null;
+        Object parsedValue = parseValueNumeric(valueNumeric);
+        if (parsedValue instanceof DatabaseFunction) {
+            this.valueComputed = (DatabaseFunction)parsedValue;
+        }
+        else {
+            this.valueNumeric = (Number)parsedValue; 
+        }
+
+        return this;
+    }
+
+    /**
+     * Tries to parse the String into a Number. If it can not be parsed,
+     * assume that the value is computed.
+     * 
+     * Is used by setValueNumeric and setDefaultValueNumeric to make sure
+     * both handle values similarly
+     * 
+     * @param parseValue
+     * @return Number or DatabaseFunction
+     */
+    private Object parseValueNumeric(String parseValue) {
+        Object returnValue = null;
+        if (parseValue == null || parseValue.equalsIgnoreCase("null")) {
+            returnValue = null;
         } else {
-            valueNumeric = valueNumeric.replaceFirst("^\\(", "");
-            valueNumeric = valueNumeric.replaceFirst("\\)$", "");
+            parseValue = parseValue.replaceFirst("^\\(", "");
+            parseValue = parseValue.replaceFirst("\\)$", "");
             
-            if (valueNumeric.matches("\\d+\\.?\\d*")) {
+            if (parseValue.matches("[-+]?\\d*\\.?\\d+")) {
                 try {
-                    this.valueNumeric = NumberFormat.getInstance(Locale.US).
-                    	parse(valueNumeric);
+                    returnValue = NumberFormat.getInstance(Locale.US).
+                        parse(parseValue);
                 } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                this.valueComputed = new DatabaseFunction(valueNumeric);
+                returnValue = new DatabaseFunction(parseValue);
             }
         }
-
-        return this;
+        return returnValue;
+        
     }
 
     public ColumnConfig setValueNumeric(Number valueNumeric) {
@@ -226,26 +249,21 @@ public class ColumnConfig {
         return this;
     }
 
-    public ColumnConfig setDefaultValueNumeric(String defaultValueNumeric) throws ParseException {
-        if (defaultValueNumeric == null || defaultValueNumeric.equalsIgnoreCase("null")) {
-            this.defaultValueNumeric = null;
+    public ColumnConfig setDefaultValueNumeric(String defaultValueNumeric) {
+        if ("GENERATED_BY_DEFAULT".equals(defaultValueNumeric)) {
+            setAutoIncrement(true);
         } else {
-            if ("GENERATED_BY_DEFAULT".equals(defaultValueNumeric)) {
-                setAutoIncrement(true);
+            Object parsedValue = parseValueNumeric(defaultValueNumeric);
+            if (parsedValue instanceof DatabaseFunction) {
+                this.defaultValueComputed = (DatabaseFunction)parsedValue;
             } else {
-                defaultValueNumeric = defaultValueNumeric.replaceFirst("^\\(", "");
-                defaultValueNumeric = defaultValueNumeric.replaceFirst("\\)$", "");
-                try {
-                    this.defaultValueNumeric = NumberFormat.getInstance(Locale.US).parse(defaultValueNumeric);
-                } catch (ParseException e) {
-                    this.defaultValueComputed  = new DatabaseFunction(defaultValueNumeric);
-                }
+                this.defaultValueNumeric = (Number)parsedValue; 
             }
         }
 
         return this;
     }
-
+    
     public Date getDefaultValueDate() {
         return defaultValueDate;
     }
@@ -291,6 +309,9 @@ public class ColumnConfig {
         return this;
     }
 
+    // KEEP THIS A POJO!
+    // It's up to the user of this class to decide what value object to use
+    @Deprecated
     public Object getDefaultValueObject() {
         if (getDefaultValue() != null) {
             return getDefaultValue();
