@@ -155,15 +155,10 @@ class XMLChangeLogSAXHandler extends DefaultHandler {
 						.getValue("relativeToChangelogFile"));
 
 				if (isRelativeToChangelogFile) {
-					File changeLogFile = new File(databaseChangeLog
-							.getPhysicalFilePath());
-					File resourceBase = new File(changeLogFile.getParent(),
-							pathName);
-					if (!resourceBase.exists()) {
-						throw new SAXException(
-								"Resource directory for includeAll does not exist ["
-										+ resourceBase.getPath() + "]");
-					}
+	                // workaround for FilenameUtils.normalize() returning null for relative paths like ../conf/liquibase.xml
+	                String tempPath  = FilenameUtils.concat(FilenameUtils.getFullPath(databaseChangeLog.getPhysicalFilePath()), pathName);
+	                File resourceBase = new File(tempPath);
+	                
 					pathName = resourceBase.getPath() + '/';
 					pathName = pathName.replace('\\', '/');
 				}
