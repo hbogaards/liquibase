@@ -175,13 +175,17 @@ public class H2Database extends AbstractDatabase {
     @Override
     public String escapeDatabaseObject(String objectName) {
     	if (objectName != null) {
-            if (isReservedWord(objectName)) {
+            if (hasMixedCase(objectName) ||isReservedWord(objectName)) {
                 return "\""+objectName.toUpperCase()+"\"";
             }
     	}
         return objectName;
     }
 
+    protected boolean hasMixedCase(String tableName) {
+        return tableName.matches(".*[A-Z].*") && tableName.matches(".*[a-z].*");
+    }
+    
     @Override
     public boolean isReservedWord(String objectName) {
         return keywords.contains(objectName.toUpperCase());
