@@ -5,7 +5,6 @@ import liquibase.database.core.*;
 import liquibase.exception.ValidationErrors;
 import liquibase.sql.Sql;
 import liquibase.sql.UnparsedSql;
-import liquibase.sqlgenerator.SqlGenerator;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.statement.core.RenameColumnStatement;
 
@@ -33,9 +32,11 @@ public class RenameColumnGenerator extends AbstractSqlGenerator<RenameColumnStat
 
     public Sql[] generateSql(RenameColumnStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         String sql;
-        if (database instanceof MSSQLDatabase || database instanceof SybaseDatabase) {
-        	// do no escape the new column name. Otherwise it produce "exec sp_rename '[dbo].[person].[usernae]', '[username]'"
+        if (database instanceof MSSQLDatabase) {
+            // do not escape the new column name. Otherwise it produces "exec sp_rename '[dbo].[person].[usernae]', '[username]'"
             sql = "exec sp_rename '" + database.escapeTableName(statement.getSchemaName(), statement.getTableName()) + "." + database.escapeColumnName(statement.getSchemaName(), statement.getTableName(), statement.getOldColumnName()) + "', '" + statement.getNewColumnName() + "'";
+        } else if (database instanceof SybaseDatabase) {
+            sql = "exec sp_rename '" + statement.getTableName() + "." + statement.getOldColumnName() + "', '" + statement.getNewColumnName() + "'";
         } else if (database instanceof MySQLDatabase) {
             sql ="ALTER TABLE " + database.escapeTableName(statement.getSchemaName(), statement.getTableName()) + " CHANGE " + database.escapeColumnName(statement.getSchemaName(), statement.getTableName(), statement.getOldColumnName()) + " " + database.escapeColumnName(statement.getSchemaName(), statement.getTableName(), statement.getNewColumnName()) + " " + statement.getColumnDataType();
         } else if (database instanceof HsqlDatabase || database  instanceof H2Database) {
