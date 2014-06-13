@@ -48,7 +48,7 @@ public class CreateViewGenerator extends AbstractSqlGenerator<CreateViewStatemen
                 sql.add(new UnparsedSql("IF NOT EXISTS (SELECT * FROM sys.views WHERE object_id = OBJECT_ID(N'["+statement.getSchemaName()+"].["+statement.getViewName()+"]'))\n" +
                         "    EXEC sp_executesql N'CREATE VIEW ["+statement.getSchemaName()+"].["+statement.getViewName()+"] AS SELECT ''This is a code stub which will be replaced by an Alter Statement'' as [code_stub]'"));
                 createClause = "ALTER VIEW";
-            } else {
+        } else {
                 createClause = "CREATE VIEW";
             }
         } else {
