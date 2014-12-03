@@ -46,11 +46,6 @@ public class SybaseTypeConverter extends AbstractTypeConverter {
     }
 
     @Override
-    public DateType getDateType() {
-        return new DateType("SMALLDATETIME");
-    }
-
-    @Override
     public BooleanType getBooleanType() {
         return new BooleanType.NumericBooleanType("BIT");
     }
