@@ -1,17 +1,20 @@
 package liquibase.sqlgenerator.core;
 
+import java.util.List;
+
 import liquibase.database.Database;
-import liquibase.database.core.*;
+import liquibase.database.core.MSSQLDatabase;
+import liquibase.database.core.MySQLDatabase;
+import liquibase.database.core.OracleDatabase;
+import liquibase.database.core.PostgresDatabase;
+import liquibase.database.core.SybaseDatabase;
 import liquibase.database.structure.Index;
 import liquibase.exception.ValidationErrors;
 import liquibase.sql.Sql;
 import liquibase.sql.UnparsedSql;
-import liquibase.sqlgenerator.SqlGenerator;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.statement.core.DropIndexStatement;
 import liquibase.util.StringUtils;
-
-import java.util.List;
 
 public class DropIndexGenerator extends AbstractSqlGenerator<DropIndexStatement> {
 
@@ -19,10 +22,9 @@ public class DropIndexGenerator extends AbstractSqlGenerator<DropIndexStatement>
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("indexName", statement.getIndexName());
 
-        if (database instanceof MySQLDatabase || database instanceof MSSQLDatabase) {
-                validationErrors.checkRequiredField("tableName", statement.getTableName());
+        if (database instanceof MySQLDatabase || database instanceof MSSQLDatabase || database instanceof SybaseDatabase) {
+            validationErrors.checkRequiredField("tableName", statement.getTableName());
         }
-
         return validationErrors;
     }
 
@@ -39,15 +41,14 @@ public class DropIndexGenerator extends AbstractSqlGenerator<DropIndexStatement>
         }
 
         String schemaName = statement.getTableSchemaName();
-        
+
         if (database instanceof MySQLDatabase) {
             return new Sql[] {new UnparsedSql("DROP INDEX " + database.escapeIndexName(null, statement.getIndexName()) + " ON " + database.escapeTableName(schemaName, statement.getTableName())) };
-        } else if (database instanceof MSSQLDatabase) {
+        } else if (database instanceof MSSQLDatabase || database instanceof SybaseDatabase) {
             return new Sql[] {new UnparsedSql("DROP INDEX " + database.escapeTableName(schemaName, statement.getTableName()) + "." + database.escapeIndexName(null, statement.getIndexName())) };
         } else if (database instanceof PostgresDatabase) {
-			return new Sql[]{new UnparsedSql("DROP INDEX " + database.escapeIndexName(schemaName, statement.getIndexName()))};
-		}
-
+            return new Sql[]{new UnparsedSql("DROP INDEX " + database.escapeIndexName(schemaName, statement.getIndexName()))};
+        }
         return new Sql[] {new UnparsedSql("DROP INDEX " + database.escapeIndexName(schemaName, statement.getIndexName())) };
     }
 }
